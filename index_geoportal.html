@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="pl-PL">
+	<head>
+		<style>
+			html, body, #map 
+			{
+				width: 100%;
+				height: 100%;
+				padding: 0;
+				margin: 0;
+				filter: contrast(1)
+			}
+			
+		</style>	
+		
+		<title>Geoportal</title>
+		
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+			integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
+			crossorigin=""/>
+		
+		<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+			integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
+			crossorigin=""></script>
+				
+	</head>
+	
+	<body>
+		<div id="map"></div>
+		
+		<link rel="stylesheet" href="Plugins\Leaflet.Control.Layers.Tree-master\Leaflet.Control.Layers.Tree-master/L.Control.Layers.Tree.css"/>
+		<script src="Plugins\Leaflet.Control.Layers.Tree-master\Leaflet.Control.Layers.Tree-master/L.Control.Layers.Tree.js"></script>
+		
+		<script type="text/javascript">	
+		
+			var center = [54.8,17];
+			var osm = L.tileLayer
+			(
+				'https://tile.openstreetmap.org/{z}/{x}/{y}.png', 
+				{
+					attribution: '© OpenStreetMap'
+				}
+			);
+			
+			var osmtopo =  L.tileLayer
+			(
+				'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', 
+				{
+					attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://viewfinderpanoramas.org">SRTM</a> | &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+				}
+			);
+			
+			var maptilerSat = L.tileLayer
+			(
+				'https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key=jGfOqGPMv9RV54EWyXtE',
+				{
+					attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
+				}
+			);
+
+			//https://tile.openweathermap.org/map/{layer}/{z}/{x}/{y}.png?appid={API key}
+			var Temp = L.tileLayer
+			(
+				'http://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=e58ca8356ab77502cd5204c1cead53c3',
+				{
+					attribution: '&copy; <a href="https://openweathermap.org/api/weathermaps">openweathermap</a> | <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>',
+				}
+			);
+			
+			var Prec = L.tileLayer
+			(
+				'https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=e58ca8356ab77502cd5204c1cead53c3',
+				{
+					attribution: '&copy; <a href="https://openweathermap.org/api/weathermaps">openweathermap</a> | <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>',
+				}
+			
+			);
+
+			var Wind = L.tileLayer
+			(
+				'https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=e58ca8356ab77502cd5204c1cead53c3',
+				{
+					attribution: '&copy; <a href="https://openweathermap.org/api/weathermaps">openweathermap</a> | <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>',
+				}
+			
+			);
+			
+			var Clouds = L.tileLayer
+			(
+				'https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=e58ca8356ab77502cd5204c1cead53c3',
+				{
+					attribution: '&copy; <a href="https://openweathermap.org/api/weathermaps">openweathermap</a> | <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>',
+					
+				}		
+			);
+			
+			var Pres = L.tileLayer
+			(
+				'https://tile.openweathermap.org/map/pressure_new/{z}/{x}/{y}.png?appid=e58ca8356ab77502cd5204c1cead53c3',
+				{
+					attribution: '&copy; <a href="https://openweathermap.org/api/weathermaps">openweathermap</a> | <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>',
+					opacity: 1.5
+				}
+			
+			);			
+			
+			var mymap = L.map
+			(
+				'map',
+				{
+					layers: [osm],
+					center: center,
+					zoom: 3.5
+					
+				}
+			);
+			
+			var TopoOSMWMSLayer = L.tileLayer.wms
+			(
+				'http://ows.mundialis.de/services/service?',
+				{
+					layers: 'TOPO-OSM-WMS',
+					//transparent: true
+					//opacity: 0.5
+					attribution: '<a href= "https://www.mundialis.de/en/ows-mundialis/"> mundialis </a>'
+				}
+			);
+			
+			var PolTopoWMSLayer = L.tileLayer.wms
+			(
+				'https://mapy.geoportal.gov.pl/wss/service/PZGIK/ORTO/WMS/StandardResolution',
+				{
+					layers: 'Raster',
+					//transparent: true
+					opacity: 0.5,
+					attribution: '<a href= "https://www.geoportal.gov.pl/uslugi/usluga-przegladania-wms"> GUGIK </a>'
+				}
+			)
+			
+			var CicloneWMSLayer = L.tileLayer.wms
+			(
+				'https://sedac.ciesin.columbia.edu/geoserver/wms',
+				{
+					layers: 'ndh:ndh-cyclone-hazard-frequency-distribution',
+					//transparency: "true",
+					//format: "image/jpg",
+					opacity: 0.5,
+					attribution: '<a href="https://sedac.ciesin.columbia.edu/maps/services#anthromes">Socioeconomic Data and Applications Center (sedac)</a>',
+				}
+			)
+			
+			var PolHydroWMSLayer = L.tileLayer.wms
+			(
+				'https://sedac.ciesin.columbia.edu/geoserver/wms',
+				{
+					layers: 'ndh:ndh-cyclone-hazard-frequency-distribution',
+					//transparency: "true",
+					//format: "image/jpg",
+					opacity: 0.5,
+					attribution: '<a href="https://sedac.ciesin.columbia.edu/maps/services#anthromes">Socioeconomic Data and Applications Center (sedac)</a>',
+				}
+			)
+			
+			var DroughtWMSLayer = L.tileLayer.wms
+			(
+				'https://sedac.ciesin.columbia.edu/geoserver/wms',
+				{
+					layers: 'ndh:ndh-drought-hazard-frequency-distribution',
+					//transparency: "true",
+					//format: "image/jpg",
+					opacity: 0.5,
+					attribution: '<a href="https://sedac.ciesin.columbia.edu/maps/services#anthromes">Socioeconomic Data and Applications Center (sedac)</a>',
+				}
+			)
+			
+			var EarthquakeWMSLayer = L.tileLayer.wms
+			(
+				'https://sedac.ciesin.columbia.edu/geoserver/wms',
+				{
+					layers: 'ndh:ndh-earthquake-frequency-distribution',
+					//transparency: "true",
+					//format: "image/jpg",
+					opacity: 0.5,
+					attribution: '<a href="https://sedac.ciesin.columbia.edu/maps/services#anthromes">Socioeconomic Data and Applications Center (sedac)</a>',
+				}
+			)
+			
+			var FloodWMSLayer = L.tileLayer.wms
+			(
+				'https://sedac.ciesin.columbia.edu/geoserver/wms',
+				{
+					layers: 'ndh:ndh-flood-hazard-frequency-distribution',
+					//transparency: "true",
+					//format: "image/jpg",
+					opacity: 0.5,
+					attribution: '<a href="https://sedac.ciesin.columbia.edu/maps/services#anthromes">Socioeconomic Data and Applications Center (sedac)</a>',
+				}
+			)
+			
+			var AirWMSLayer = L.tileLayer.wms
+			(
+				'https://sedac.ciesin.columbia.edu/geoserver/wms',
+				{
+					layers: 'esi:esi-environmental-sustainability-index-2005_air-quality',
+					//transparency: "true",
+					//format: "image/jpg",
+					opacity: 0.5,
+					attribution: '<a href="https://sedac.ciesin.columbia.edu/maps/services#anthromes">Socioeconomic Data and Applications Center (sedac)</a>',
+				}
+			)
+			
+			var WaterWMSLayer = L.tileLayer.wms
+			(
+				'https://sedac.ciesin.columbia.edu/geoserver/wms',
+				{
+					layers: 'esi:esi-environmental-sustainability-index-2005_water-quality',
+					//transparency: "true",
+					//format: "image/jpg",
+					opacity: 0.5,
+					attribution: '<a href="https://sedac.ciesin.columbia.edu/maps/services#anthromes">Socioeconomic Data and Applications Center (sedac)</a>',
+				}
+			)
+			
+			var PolSynopLayer = L.tileLayer.wms
+			(
+				'https://wody.isok.gov.pl/gpservices/KZGW/MZP20_ObszarySzczegolnegoZagrozeniaPowodzia/MapServer/WMSServer',
+				{
+					layers: '0',
+					//attribution: '<a href= "https://www.geoportal.gov.pl/uslugi/usluga-przegladania-wms"> GUGIK </a>',
+					opacity: 0.5
+				}
+			
+			)
+			
+
+			
+			var DeathValley =
+			{
+				"type": "FeatureCollection",
+				"features": 
+				[
+					{
+						"type": "Feature",
+						"properties": 
+						{
+							"name": "DeathValley",
+							"temperature": "56.7 °C </br>(10.07.1913)",
+							"popupContent": "<center>Dolina Śmierci </br>"
+							+'<img src = "https://upload.wikimedia.org/wikipedia/commons/1/1b/Death_valley_deserts_sand_dunes.jpg" height="220px" width="305px"/> </br>'
+							+'Najwyższa temperatura w Ameryce Pół.: ',
+							"source": '<p style="font-size:80%;">Foto: author: Jon Sullivan source <a href = https://commons.wikimedia.org/wiki/File:Death_valley_deserts_sand_dunes.jpg#/media/File:Death_valley_deserts_sand_dunes.jpg>wikipedia.org</a></br>© Public Domain</center>'
+							
+						},
+						"geometry": 
+						{
+							"coordinates": 
+							[
+								-116.86630504139659,
+								36.46104980833843
+							],
+							"type": "Point"
+						}
+					}
+				]
+			}
+			
+			var Greenland =
+			{
+			  "type": "FeatureCollection",
+			  "features": [
+				{
+				  "type": "Feature",
+				  "properties": {"name": "Klinck Automated Weather Station, Greenland Ice Sheet",
+							"temperature": "-69.6 °C</br>(22.12.1991)",
+							"popupContent": "<center>Grenlandia</br>"
+							+'<img src = "https://upload.wikimedia.org/wikipedia/commons/f/fe/Inlandsis_Groenland_2009_Exp%C3%A9dition_ACarr%C3%A9.JPG" height="220px" width="305px"/> </br>'
+							+ 'Najniższa temperatura w Ameryce Pół.: ',
+							"source": '<p style="font-size:80%;">Foto: Inlandsis Groenland 2009 Expédition ACarré</br> <a href = https://creativecommons.org/licenses/by-sa/3.0/deed.en> CC BY-SA 3.0 </a> </center>'
+							},
+				  "style" : {"radius" : [6],
+							"color" : "#3933FF",
+							"opacity" : [3],
+							"fillOpacity": [3]},
+				  "geometry": {
+					"coordinates": [
+					  -40,
+					  72
+					],
+					"type": "Point"
+				  }
+				}
+			  ]
+			}
+			
+			//zdediniowane style dla GeoJSON
+			var redStyle = {
+				radius: 6,
+				color: "#ff3333",
+				opacity: 1,
+				fillOpacity: 1
+			};
+			
+			var blueStyle = {
+				radius: 6,
+				color: "#3933FF",
+				opacity: 3,
+				fillOpacity: 3
+			};
+			
+			var DV = L.geoJSON(DeathValley, {pointToLayer: function (feature, latlng) {return L.circleMarker(latlng, redStyle);}, onEachFeature: onEachFeature});
+			var Gr = L.geoJSON(Greenland, {pointToLayer: function (feature, latlng) {return L.circleMarker(latlng, blueStyle)}, onEachFeature: onEachFeature});
+			
+			var mapTree = 
+			{
+		
+				label: 'Warstwy Map',
+				children: 
+				[
+					{
+						label: 'Podstawowa', 
+						layer: osm, 
+						name: 'OpenStreeMap B&W'
+					},
+					{
+						label: 'Fizyczna',
+						layer: osmtopo
+					},
+					{
+						label: 'Satelita',
+						layer: maptilerSat
+					},
+				]
+			
+			};	
+			
+			var weatherTree = 
+			[
+				{
+					
+					label: 'Warstwy Pogodowe',
+					selectAllCheckbox: false,
+					children:
+					[
+						{
+							label: 'Temparatura', 
+							layer: Temp
+						},
+						{
+							label: 'Opady Atmosferyczne', 
+							layer: Prec
+						},
+						{
+							label: 'Prędkość Wiatru',
+							layer: Wind
+						},
+						{
+							label: 'Chmury',
+							layer: Clouds
+						},
+						{
+							label: 'Ciśnienie Atmosferyczne',
+							layer: Pres
+						}
+					]
+					
+				},
+				{
+					label: 'Odnotowane Rekordy klimatyczne',
+					selectAllCheckbox: true,
+					children: 
+					[
+						{
+							label: 'Ameryka Północna', 
+							selectAllCheckbox: true,
+							children:
+							[
+								{
+									label: 'Dolina Śmierci, USA',
+									layer: DV
+								},
+								{
+									label: 'Klinck Weather Station, Grenlandia',
+									layer: Gr
+								}
+							]
+						},
+						{
+							label: 'Ameryka Południowa', 
+							selectAllCheckbox: true,
+							children:
+							[
+								{
+									label: 'Rivadavia, Argentyna',
+									layer: L.circleMarker([-24.18333333, -62.88333333], redStyle).bindPopup("<center>Rivadavia</br> Najwyższa temperatura w Ameryce Poł.: 48.9 °C </br>(11.12.1905)</center>")
+								},
+								{
+									label: 'Sarmiento, Argentyna',
+									layer: L.circleMarker([-45.6, -69.08333333], blueStyle).bindPopup("<center>Sarmiento</br><img src = 'https://upload.wikimedia.org/wikipedia/commons/5/56/Petrified-wood-8.jpg'"
+										+'height="220px" width="305px"/> </br> Najniższa temperatura w Ameryce Poł.: −32.8 °C </br>(1.07.1907)</br><p style="font-size:80%;">Foto: author: Dhzanette, source: wikipedia.org</br>©Domena Publiczna</p></center>')
+								}
+							]
+						},
+						{
+							label: 'Europa', 
+							selectAllCheckbox: true,
+							children:
+							[
+								{
+									label: 'Syrakuzy, Włochy',
+									layer: L.circleMarker([37.08333333, 15.28333333], redStyle).bindPopup("<center>Sarakuzy</br>"
+									+ "<img src = 'https://upload.wikimedia.org/wikipedia/commons/b/b4/Ortigia_dall%27alto.jpg' 'height='175px' width='305px'/>"
+									+"Najwyższa temperatura w Europie: 48,8 °C </br>(11.08.2021)</br>"
+									+"<p style='font-size:80%;'>Foto: author: <a href = 'https://www.flickr.com/people/100419103@N02'>Agostino Artnoir Sella</a> "
+									+"source: <a href = 'https://www.flickr.com/photos/100419103@N02/13474050214/'>Ortigia</a> </br>© <a href = 'https://creativecommons.org/licenses/by-sa/2.0/'>CC BY-SA 2.0</a></p> </center>"
+									)
+								},
+								{
+									label: 'Ust´-Szczugier, Rosja',
+									layer: L.circleMarker([64.45, 57.98333333], blueStyle).bindPopup("<center>Ust´-Szczugier</br>"
+									+"Najniższa temperatura w Europie: −58,1 °C </br>(31.12.1978)")
+								}
+							]
+						},
+						{
+							label: 'Azja', 
+							selectAllCheckbox: true,
+							children:
+							[
+								{
+									label: 'Tirat Cewi, Izrael',
+									layer: L.circleMarker([32.42194444444, 35.52833333333], redStyle).bindPopup("<center>Tirat Cewi</br>"
+									+ "<img src = 'https://upload.wikimedia.org/wikipedia/commons/1/1d/Tirat_Tzvi.JPG' 'height='225px' width='305px'/></br>"
+									+"Najwyższa temperatura w Azji: 54 °C </br>(21.06.1942)</br>"
+									+ "<p style='font-size:80%;'>Foto: author: אסף.צ  source: <a href = 'https://commons.wikimedia.org/wiki/File:Tirat_Tzvi.JPG'>wikipedia.org</a> </br>© <a href = 'https://creativecommons.org/licenses/by-sa/3.0/'>CC BY-SA 3.0</a></p> </center>"
+									)
+								},
+								{
+									label: 'Tomtor, Rosja',
+									layer: L.circleMarker([63.25583333333, 143.35944444444], blueStyle).bindPopup("<center>Tomtor</br>"
+									+ "<img src = 'https://upload.wikimedia.org/wikipedia/commons/8/80/Tomtor.jpg' 'height='225px' width='305px'/></br>"
+									+"Najniższa temperatura w Azji: −72,2 °C </br>(14.01.2004)</br>"
+									+ "<p style='font-size:80%;'>Foto: author: BerendWorst  source: <a href = 'https://commons.wikimedia.org/wiki/File:Tomtor.jpg'>wikipedia.org</a> </br>© <a href = 'https://creativecommons.org/licenses/by-sa/4.0/deed.en'>CC BY-SA 4.0</a></p> </center>"
+									)
+								}
+							]
+						},
+						{
+							label: 'Afryka', 
+							selectAllCheckbox: true,
+							children:
+							[
+								{
+									label: 'Kibili, Tunezja',
+									layer: L.circleMarker([33.7, 8.96666666666], redStyle).bindPopup("<center>Kibili</br>"
+									+ "<img src = 'https://upload.wikimedia.org/wikipedia/commons/5/5b/Tn-kebili2.jpg' 'height='266px' width='286px'/></br>"
+									+"Najwyższa temperatura w Afryce: 55,0 °C </br>(7.07.1931)</br>"
+									+ "<p style='font-size:80%;'>Foto: author: Jaume Ollé source: <a href = 'https://commons.wikimedia.org/wiki/File:Tn-kebili2.jpg'>wikipedia.org</a> </br>© <a href = 'https://creativecommons.org/licenses/by/2.5/'>CC BY 2.5</a></p> </center>"
+									)
+								},
+								{
+									label: 'Ifran, Maroko',
+									layer: L.circleMarker([33.53, -5.12], blueStyle).bindPopup("<center>Ifran</br>"
+									+ "<img src = 'https://upload.wikimedia.org/wikipedia/commons/7/71/Neige_ifrane.jpg' 'height='215px' width='305px'/></br>"
+									+"Najniższa temperatura w Afryce: −23,9 °C </br>(11.02.1935)</br>"
+									+ "<p style='font-size:80%;'>Foto: author: Eric Gaba source: <a href = 'https://en.wikipedia.org/wiki/Ifrane#/media/File:Neige_ifrane.jpg'>wikipedia.org</a> © <a href = 'http://artlibre.org/licence/lal/en/'>FAL</a></p> </center>"
+									)
+								}
+							]
+						},
+						{
+							label: 'Australia i Oceania', 
+							selectAllCheckbox: true,
+							children:
+							[
+								{
+									label: 'Oodnadatta, Australia',
+									layer: L.circleMarker([-27.5333333, 135.43333333333], redStyle).bindPopup("<center>Oodnadatta</br>"
+									+ "<img src = 'https://upload.wikimedia.org/wikipedia/commons/6/69/Oodnadatta-Track-sign.JPG' 'height='215px' width='305px'/></br>"
+									+"Najwyższa temperatura w Austr. i Oce.: 50,7 °C </br>(1.01.1960)</br>"
+									+ "<p style='font-size:80%;'>Foto: author: Kr.afol source: <a href = 'https://commons.wikimedia.org/wiki/File:Oodnadatta-Track-sign.JPG'>wikipedia.org</a> </br>© <a href = 'https://creativecommons.org/licenses/by-sa/3.0/'>CC BY 3.0</a></p> </center>"
+									)
+								},
+								{
+									label: 'Charlotte Pass, Australia',
+									layer: L.circleMarker([-36.43454861203515,148.33184976308428], blueStyle).bindPopup("<center>Charlotte Pass</br>"
+									+"<img src = 'https://upload.wikimedia.org/wikipedia/commons/c/ce/Charlotte_Pass_2008.jpg' 'height='215px' width='305px'/></br>"
+									+"Najniższa temperatura w Austr. i Oce.: −23,9 °C </br>(29.06.1994)</br>"
+									+ "<p style='font-size:80%;'>Foto: author: <a href ='https://www.flickr.com/photos/19516956@N00'>flyingpurplemonkeys</a> source: <a href = 'https://commons.wikimedia.org/wiki/File:Charlotte_Pass_2008.jpg'>wikipedia.org</a> </br>© <a href = 'https://creativecommons.org/licenses/by/2.0/'>CC BY 2.0</a></p> </center>"
+									)
+								}
+							]
+						},
+						{
+							label: 'Antarktyda', 
+							selectAllCheckbox: true,
+							children:
+							[
+								{
+									label: 'stacja polarna Esperanza',
+									layer: L.circleMarker([-63.4, -56.98333333333], redStyle).bindPopup("<center>Esperanza</br>"
+									+ "<img src = 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Hope_Bay-2016-Trinity_Peninsula%E2%80%93Esperanza_Station_02.jpg' 'height='215px' width='305px'/></br>"
+									+"Najwyższa temperatura na Antarktydzie: 18,3 °C (6.02.2020)</br>"
+									+ "<p style='font-size:80%;'>Foto: author: Andrew Shiva source: <a href = 'https://commons.wikimedia.org/wiki/File:Hope_Bay-2016-Trinity_Peninsula%E2%80%93Esperanza_Station_02.jpg'>wikipedia.org</a> </br>© <a href = 'https://creativecommons.org/licenses/by-sa/4.0/'>CC BY-SA 4.0</a></p> </center>"
+									)
+								},
+								{
+									label: 'Stacja Antarktyczna Wostok',
+									layer: L.circleMarker([-78.46416666666,106.83805555555], blueStyle).bindPopup("<center>Wostok</br>"
+									+"<img src = 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Wostok-Station_core32.jpg' 'height='200px' width='305px'/></br>"
+									+"Najniższa temperatura na Antarktydzie: −89,2 °C (21.07.1983)</br>"
+									+ "<p style='font-size:80%;'>Foto: author: <a href ='http://www.ngdc.noaa.gov/paleo/slides/slideset/15/15_300_slide.html'>National Oceanic and Atmospheric Administration</a> source: <a href = 'https://commons.wikimedia.org/wiki/File:Charlotte_Pass_2008.jpg'>wikipedia.org</a> </br>© Domena Publiczna</p> </center>"
+									)
+								}
+							]
+						}
+					]
+				},
+				{
+					label: 'WMS',
+					selectAllCheckbox: false,
+					children: 
+					[
+						{
+							label: 'Świat', 
+							selectAllCheckbox: false,
+							children:
+							[
+								{
+									label: 'Topografia świata',
+									layer: TopoOSMWMSLayer
+								},
+								{
+									label: 'Globalne zagrożenia cyklonami',
+									layer: CicloneWMSLayer
+								},
+								{
+									label: 'Globalne zagrożenia trzęsieniami ziemi',
+									layer: EarthquakeWMSLayer
+								},
+								{
+									label: 'Globalne zagrożenia powodziami',
+									layer: FloodWMSLayer
+								},
+								{
+									label: 'Globalna jakość powietrza',
+									layer: AirWMSLayer
+								},
+								{
+									label: 'Globalna jakość wody',
+									layer: WaterWMSLayer
+								}
+							]
+						},
+						{
+							label: 'Polska', 
+							selectAllCheckbox: false,
+							children:
+							[
+								{
+									label: 'Ortofotomapa Polski',
+									layer: PolTopoWMSLayer
+								},
+								{
+									label: 'Obszar zagrożenia powodziowego (rzeki)',
+									layer: PolSynopLayer
+								}
+							]
+						}
+					]
+				}
+			];	
+						
+			var controls = L.control.layers.tree(mapTree, null,
+            {
+                namedToggle: true,
+                collapseAll: 'Collapse all',
+                expandAll: 'Expand all',
+                collapsed: false,
+            });
+
+			controls = L.control.layers.tree(mapTree).addTo(mymap);
+			controls.setOverlayTree(weatherTree).collapseTree(true).expandSelected(true);
+			
+			async function whatWeatherOnMap(e) 
+			{
+				var	Lat = e.latlng.lat;
+				var Lon = e.latlng.lng;
+				const weatherresponse = await fetch('https://api.openweathermap.org/data/2.5/weather?lat=' + Lat + '&lon=' + Lon + '&appid=e58ca8356ab77502cd5204c1cead53c3');
+				const weatherData = await weatherresponse.json();
+				const airresponse = await fetch('http://api.openweathermap.org/data/2.5/air_pollution?lat=' + Lat + '&lon=' + Lon + '&appid=e58ca8356ab77502cd5204c1cead53c3');
+				const airData = await airresponse.json();
+				console.log(weatherData);
+				var popup = L.popup
+				var rain_ = "";
+				
+				if (weatherData.hasOwnProperty('rain'))
+				{
+					rain_ = "Opad deszczu: " + weatherData.rain['1h'] + " mm/h" + "</br>";
+				};
+				
+				var snow_ = "";
+				if (weatherData.hasOwnProperty('snow'))
+				{
+					snow_ = "Opad śniegu: " + weatherData.snow['1h'] + " mm/h" + "</br>";
+				};
+				
+				var popup = L.popup(e.latlng, 
+					{
+						content: "<center>" + "Miejsce: "+ weatherData.name + "</br> Temperatura: " 
+						+ Math.round(weatherData.main.temp - 273.15).toString() +  " °C </br>" 
+						+ "Ciśnienie: "+ (weatherData.main.pressure).toString() + " hPa </br>" 
+						+ "Zachmurzenie: " + weatherData.clouds.all + " %" + "</br>" 
+						+ "Prędkość wiatru: " + weatherData.wind.speed + " m/s" + "</br>"
+						+ rain_
+						+ snow_
+						+ "Indeks jakości powietrza (<a href='https://smogopedia.pl/Indeksy_jako%C5%9Bci_powietrza#CAQI' target='_blank'>CAQI</a>): " + airquality(airData.list[0].main.aqi) +  "</br>"
+						+ '<img src ="http://openweathermap.org/img/wn/' + weatherData.weather[0].icon + '@2x.png" height="100px" width="100px"/>'
+						+ "<p style='font-size:80%;'>"
+						+ '&copy; <a href="https://openweathermap.org/api" target="_blank">openweather</a> | <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC BY-SA 4.0</a> </p>'
+						+ '</center>'
+					}
+				).openOn(mymap);
+			}
+			
+			function airquality(N) 
+			{
+				let rtn;
+				if (N == 5)
+				{
+					rtn = 'Bardzo wysoki';
+				}
+				else if (N == 4)
+				{
+					rtn = 'Wysoki';
+				}
+				else if (N == 3)
+				{
+					rtn = 'Średni'
+				}
+				else if (N == 2)
+				{
+					rtn = 'Niski'
+				}
+				else if  (N == 1)
+				{
+					rtn = 'Bardzo niski'
+				}
+				else
+				{
+					rtn = 'Unknown';
+				}
+				return rtn;
+			}
+			
+			function onEachFeature(feature, layer) 
+			{
+				if (feature.properties && feature.properties.popupContent && feature.properties.temperature) 
+				{
+					source = "";
+					if (feature.properties.hasOwnProperty('source'))
+					{
+						source = feature.properties.source;
+					};
+					
+					layer.bindPopup(feature.properties.popupContent + feature.properties.temperature + source);
+				}
+			}
+			
+			mymap.on('click', whatWeatherOnMap)
+		</script>
+	</body>
+</html>
